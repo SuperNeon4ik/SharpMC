@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace SharpMC
 {
@@ -7,6 +8,8 @@ namespace SharpMC
         public static void Main(string[] args)
         {
             SharpMC.Start();
+            Console.ReadLine();
+            SharpMC.Stop();
         }
     }
 }
