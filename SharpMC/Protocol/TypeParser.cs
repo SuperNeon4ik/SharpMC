@@ -60,6 +60,52 @@ namespace SharpMC.Protocol
 
             return stripped.ToArray();
         }
+        
+        public static long ReadVarLong(byte[] bytes) {
+            long value = 0;
+            int position = 0;
+
+            foreach (byte currentByte in bytes) {
+                value |= (long) (currentByte & SEGMENT_BITS) << position;
+
+                if ((currentByte & CONTINUE_BIT) == 0) break;
+
+                position += 7;
+
+                if (position >= 64) throw new Exception("VarLong is too big");
+            }
+
+            return value;
+        }
+        public static byte[] SkipVarLong(byte[] bytes) {
+            long value = 0;
+            int position = 0;
+
+            bool writeToArray = false;
+            List<byte> stripped = new List<byte>();
+            foreach (var currentByte in bytes) {
+                if (writeToArray)
+                {
+                    stripped.Add(currentByte);
+                }
+                else
+                {
+                    value |= (long)(currentByte & SEGMENT_BITS) << position;
+
+                    if ((currentByte & CONTINUE_BIT) == 0)
+                    {
+                        writeToArray = true;
+                        continue;
+                    }
+
+                    position += 7;
+
+                    if (position >= 64) throw new Exception("VarLong is too big");
+                }
+            }
+
+            return stripped.ToArray();
+        }
 
         public static string ReadString(byte[] bytes)
         {
@@ -78,6 +124,7 @@ namespace SharpMC.Protocol
 
         public static ushort ReadUshort(byte[] bytes)
         {
+            if (bytes.Length == 0) return 0;
             bytes = bytes.Take(2).ToArray();
             Array.Reverse(bytes);
             return BitConverter.ToUInt16(bytes, 0);

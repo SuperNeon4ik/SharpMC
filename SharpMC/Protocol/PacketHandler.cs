@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using Newtonsoft.Json;
 using SharpMC.Enums;
+using SharpMC.Protocol.Packets;
+using SharpMC.Protocol.Packets.Clientbound;
 using SharpMC.Protocol.Packets.Serverbound;
 
 namespace SharpMC.Protocol
@@ -10,8 +13,9 @@ namespace SharpMC.Protocol
     public class PacketHandler
     {
         private static readonly Logger Logger = new("Protocol");
+        public const int PROTOCOL_VERSION = 760;
 
-        public static void ProcessPacket(Socket clientSocket, byte[] packet)
+        public static void ProcessPacket(ClientConnection clientConnection, byte[] packet)
         {
             if (packet.Length == 0) return;
             byte packetId = packet[0];
@@ -19,22 +23,65 @@ namespace SharpMC.Protocol
 
             if (packetId == 0x00)
             {
-                // Handshake or Status Request
-                if (packetPayload.Length > 0)
+                if (clientConnection.State == ClientState.Handshaking)
                 {
-                    PacketHandshakeClient p = new(packetPayload);
-                    Logger.Log(LogLevel.DEBUG, $"Received Handshake packet: {JsonConvert.SerializeObject(p)}");
+                    // Handshake
+                    PacketClientHandshake p = new(packetPayload);
+                    Logger.Log(LogLevel.Debug, $"Received Handshake packet: {JsonConvert.SerializeObject(p)}");
+                    if (p.NextState == 1) clientConnection.State = ClientState.Status;
+                    else if (p.NextState == 2) clientConnection.State = ClientState.Login;
+                    
                 }
-                else
+                else if (clientConnection.State == ClientState.Status)
                 {
-                    Logger.Log(LogLevel.DEBUG, "Received Status Request packet.");
+                    PacketServerStatus statusPacket = new PacketServerStatus();
+                    PacketServerStatus.StatusData statusData = new PacketServerStatus.StatusData();
+                    statusData.version = new PacketServerStatus.StatusVersion
+                    {
+                        name = SharpMC.PropertiesConfig.ServerVersion,
+                        protocol = PROTOCOL_VERSION
+                    };
+                    statusData.players = new PacketServerStatus.StatusPlayers
+                    {
+                        max = SharpMC.PropertiesConfig.MaxPlayers,
+                        online = 0,
+                        sample = Array.Empty<PacketServerStatus.StatusPlayer>()
+                    };
+                    statusData.description = new PacketServerStatus.StatusDescription()
+                    {
+                        text = ChatColor.ReplaceAlternativeColorCodes('&', SharpMC.PropertiesConfig.Motd)
+                    };
+                    statusPacket.JsonData = statusData;
+                    SendServerPacket(clientConnection, statusPacket);
+                }
+            }
+            else if (packetId == 0x01)
+            {
+                if (clientConnection.State == ClientState.Status)
+                {
+                    // Ping
+                    Logger.Log(LogLevel.Debug, BitConverter.ToString(packetPayload));
+                    PacketClientPing p = new(packetPayload);
+                    Logger.Log(LogLevel.Debug, p.Timestamp.ToString());
+                    PacketServerPong pongPacket = new PacketServerPong();
+                    pongPacket.Timestamp = p.Timestamp;
+                    SendServerPacket(clientConnection, pongPacket, true);
                 }
             }
             else
             {
-                Logger.Log(LogLevel.INFO,
-                    $"[{clientSocket.RemoteEndPoint}] Received unknown packet: ({BitConverter.ToString(new[] { packetId })}) {BitConverter.ToString(packetPayload)}");
+                Logger.Log(LogLevel.Info,
+                    $"[{clientConnection.ClientSocket.RemoteEndPoint}] Received unknown packet: ({BitConverter.ToString(new[] { packetId })}) {BitConverter.ToString(packetPayload)}");
             }
-        } 
+        }
+
+        public static void SendServerPacket(ClientConnection clientConnection, IServerPacket packet, bool debug = false)
+        {
+            if (debug)
+                Logger.Log(LogLevel.Debug, $"[{clientConnection.ClientSocket.RemoteEndPoint}] Sending packet: {JsonConvert.SerializeObject(packet)}");
+            List<byte> bytes = packet.ToBytes();
+            bytes.InsertRange(0, TypeWriter.ToVarInt(bytes.Count));
+            clientConnection.ClientSocket.Send(bytes.ToArray());
+        }
     }
 }

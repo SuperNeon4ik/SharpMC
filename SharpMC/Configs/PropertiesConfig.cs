@@ -7,5 +7,7 @@
         public string IpAddress = "127.0.0.1";
         public int Port = 25565;
         public string Motd = "A SharpMC Server";
+        public string ServerVersion = "SharpMC 1.19";
+        public int MaxPlayers = 20;
     }
 }

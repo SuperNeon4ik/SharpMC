@@ -1,6 +1,6 @@
 ﻿namespace SharpMC.Protocol.Packets.Serverbound
 {
-    public class PacketHandshakeClient
+    public class PacketClientHandshake
     {
         public const byte ID = 0x00;
         
@@ -9,7 +9,7 @@
         public ushort ServerPort { get; }
         public int NextState { get; }
 
-        public PacketHandshakeClient(byte[] bytes)
+        public PacketClientHandshake(byte[] bytes)
         {
             ProtocolVersion = TypeParser.ReadVarInt(bytes);
             bytes = TypeParser.SkipVarInt(bytes);

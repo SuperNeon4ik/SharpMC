@@ -4,6 +4,6 @@ namespace SharpMC.Enums
 {
     public enum LogLevel
     {
-        INFO, WARN, ERROR, DEBUG
+        Info, Warn, Error, Debug
     }
 }
