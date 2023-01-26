@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using java.util;
 
 namespace SharpMC.Protocol;
 
@@ -63,5 +64,17 @@ public static class TypeWriter
     public static void WriteInt64(List<byte> bytes, long value)
     {
         bytes.AddRange(BitConverter.GetBytes(value));
+    }
+
+    public static void WriteUuid(List<byte> bytes, UUID value)
+    {
+        byte[] strBytes = Encoding.UTF8.GetBytes(value.toString());
+        bytes.AddRange(strBytes);
+    }
+
+    public static void WriteBool(List<byte> bytes, bool b)
+    {
+        if (b) bytes.Add(0x01);
+        else bytes.Add(0x00);
     }
 }

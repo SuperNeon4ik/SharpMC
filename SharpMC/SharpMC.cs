@@ -53,37 +53,18 @@ namespace SharpMC
             SetupPropertiesConfig();
             
             // Create RSA keypair
-            using (var rsa = new RSACryptoServiceProvider())
-            {
-                rsa.KeySize = 1024;
-                rsa.PersistKeyInCsp = false;
-
-                // string subject = "CN=superneon4ik.me";
-                // var certReq = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-                // certReq.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true)); 
-                // certReq.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(certReq.PublicKey, false));
-                //
-                // var expirate = DateTimeOffset.Now.AddYears(5);
-                // var caCert  = certReq.CreateSelfSigned(DateTimeOffset.Now, expirate);
-                //
-                // var clientKey = RSA.Create(2048);
-                // var clientReq = new CertificateRequest(subject, clientKey,HashAlgorithmName.SHA256,RSASignaturePadding.Pkcs1);
-                // clientReq.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, false));
-                // clientReq.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation, false));
-                // clientReq.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(clientReq.PublicKey, false));
-                // byte[] serialNumber = BitConverter.GetBytes(DateTime.Now.ToBinary());
-                // var clientCert = clientReq.Create(caCert, DateTimeOffset.Now, expirate, serialNumber);
-                
-                StringBuilder builder = new StringBuilder();
-                builder.AppendLine("-----BEGIN PUBLIC KEY-----");
-                builder.AppendLine(Convert.ToBase64String(rsa.ExportCspBlob(false), Base64FormattingOptions.InsertLineBreaks));
-                builder.AppendLine("-----END PUBLIC KEY-----");
-                File.WriteAllText("public.crt", builder.ToString());
-
-                Logger.Log(LogLevel.Info, "Generated Keypair.");
-                // Logger.Log(LogLevel.Debug, $"Public Key: {Encoding.Default.GetString(RsaPublicKey)}");
-            }
-
+            // using (var rsa = new RSACryptoServiceProvider())
+            // {
+            //     rsa.KeySize = 1024;
+            //
+            //     RsaPublicKey = rsa.ExportCspBlob(false);
+            //     RsaPrivateKey = rsa.ExportCspBlob(true);
+            //
+            //     Logger.Log(LogLevel.Info, "Generated Keypair.");
+            // }
+            
+            Logger.Log(LogLevel.Warn, "***** Server is running in offline-mode! *****");
+            
             Logger.Log(LogLevel.Info, "Starting server...");
             IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Parse(PropertiesConfig.IpAddress), PropertiesConfig.Port);
             Socket = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);

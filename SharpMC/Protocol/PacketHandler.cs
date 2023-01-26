@@ -16,10 +16,32 @@ namespace SharpMC.Protocol
 {
     public class PacketHandler
     {
-        private static readonly Logger Logger = new("Protocol");
-        public const int PROTOCOL_VERSION = 760;
+        public static PacketHandler Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new PacketHandler();
+                }
 
-        public static void ProcessPacket(ClientConnection clientConnection, byte[] packet)
+                return _instance;
+            }
+        }
+
+        private static PacketHandler _instance = null;
+
+        public const int PROTOCOL_VERSION = 760;
+        private static readonly Logger Logger = new("Protocol");
+        private byte[] verifyToken = new byte[4];
+        private Random random = new Random();
+
+        public PacketHandler()
+        {
+            random.NextBytes(verifyToken);
+        }        
+
+        public void ProcessPacket(ClientConnection clientConnection, byte[] packet)
         {
             if (packet.Length == 0) return;
             byte packetId = packet[0];
@@ -31,7 +53,7 @@ namespace SharpMC.Protocol
                 {
                     // Handshake
                     PacketHandshakingClientHandshake p = new(packetPayload);
-                    // Logger.Log(LogLevel.Debug, $"Received Handshake packet: {JsonConvert.SerializeObject(p)}");
+                    Logger.Log(LogLevel.Debug, $"Received Handshake packet: {JsonConvert.SerializeObject(p)}");
                     clientConnection.ProtocolVersion = p.ProtocolVersion;
                     clientConnection.ServerAddress = p.ServerAddress;
                     clientConnection.ServerPort = p.ServerPort;
@@ -70,17 +92,11 @@ namespace SharpMC.Protocol
                     clientConnection.UUID = p.PlayerUUID;
                     clientConnection.ClientLogger.Log(LogLevel.Info, $"Logging in as {clientConnection.Name}[{clientConnection.UUID}].");
                     
-                    // Send Encryption Response
-                    PacketLoginEncryptionRequest encryptionRequest = new PacketLoginEncryptionRequest();
-
-                    byte[] verifyToken = new byte[4];
-                    Random random = new Random();
-                    random.NextBytes(verifyToken);
-
-                    encryptionRequest.PublicKey = File.ReadAllText("public.crt");
-                    encryptionRequest.VerifyToken = verifyToken;
-                    
-                    SendServerPacket(clientConnection, encryptionRequest, true);
+                    // Send Login Success
+                    PacketLoginSuccess loginSuccess = new PacketLoginSuccess();
+                    loginSuccess.Uuid = clientConnection.UUID;
+                    loginSuccess.Username = clientConnection.Name;
+                    SendServerPacket(clientConnection, loginSuccess, true);
                 }
             }
             else if (packetId == 0x01)
@@ -101,7 +117,7 @@ namespace SharpMC.Protocol
             }
         }
 
-        public static void SendServerPacket(ClientConnection clientConnection, IServerPacket packet, bool debug = false)
+        public void SendServerPacket(ClientConnection clientConnection, IServerPacket packet, bool debug = false)
         {
             if (debug)
                 Logger.Log(LogLevel.Debug, $"[{clientConnection.ClientSocket.RemoteEndPoint}] Sending packet: {JsonConvert.SerializeObject(packet)}");

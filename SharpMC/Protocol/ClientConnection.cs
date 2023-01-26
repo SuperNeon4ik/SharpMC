@@ -107,7 +107,7 @@ public class ClientConnection
                         if (packet.Count == packetLenght)
                         {
                             readingPacketLenght = true;
-                            PacketHandler.ProcessPacket(this, packet.ToArray());
+                            PacketHandler.Instance.ProcessPacket(this, packet.ToArray());
                             packet.Clear();
                             packetLenght = 0;
                             position = 0;
