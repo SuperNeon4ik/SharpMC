@@ -109,7 +109,6 @@
     <Compile Include="Enums\LogLevel.cs" />
     <Compile Include="Enums\ClientState.cs" />
     <Compile Include="Modules\ChatColor.cs" />
-    <Compile Include="Modules\Crypt.cs" />
     <Compile Include="Modules\Logger.cs" />
     <Compile Include="Modules\MinecraftEncryption.cs" />
     <Compile Include="Program.cs" />
