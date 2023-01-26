@@ -60,12 +60,10 @@ namespace SharpMC.Protocol
                 if (clientConnection.State == ClientState.Status)
                 {
                     // Ping
-                    Logger.Log(LogLevel.Debug, BitConverter.ToString(packetPayload));
                     PacketClientPing p = new(packetPayload);
-                    Logger.Log(LogLevel.Debug, p.Timestamp.ToString());
                     PacketServerPong pongPacket = new PacketServerPong();
                     pongPacket.Timestamp = p.Timestamp;
-                    SendServerPacket(clientConnection, pongPacket, true);
+                    SendServerPacket(clientConnection, pongPacket);
                 }
             }
             else
