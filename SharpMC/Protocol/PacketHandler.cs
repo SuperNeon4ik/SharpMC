@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
-using java.util;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using Newtonsoft.Json;
 using SharpMC.Enums;
+using SharpMC.Modules;
 using SharpMC.Protocol.Packets;
 using SharpMC.Protocol.Packets.Clientbound;
 using SharpMC.Protocol.Packets.Serverbound;
@@ -68,6 +71,16 @@ namespace SharpMC.Protocol
                     clientConnection.ClientLogger.Log(LogLevel.Info, $"Logging in as {clientConnection.Name}[{clientConnection.UUID}].");
                     
                     // Send Encryption Response
+                    PacketLoginEncryptionRequest encryptionRequest = new PacketLoginEncryptionRequest();
+
+                    byte[] verifyToken = new byte[4];
+                    Random random = new Random();
+                    random.NextBytes(verifyToken);
+
+                    encryptionRequest.PublicKey = File.ReadAllText("public.crt");
+                    encryptionRequest.VerifyToken = verifyToken;
+                    
+                    SendServerPacket(clientConnection, encryptionRequest, true);
                 }
             }
             else if (packetId == 0x01)
@@ -94,6 +107,8 @@ namespace SharpMC.Protocol
                 Logger.Log(LogLevel.Debug, $"[{clientConnection.ClientSocket.RemoteEndPoint}] Sending packet: {JsonConvert.SerializeObject(packet)}");
             List<byte> bytes = packet.ToBytes();
             bytes.InsertRange(0, TypeWriter.ToVarInt(bytes.Count));
+            if (debug)
+                Logger.Log(LogLevel.Debug, $"Sending bytes: {BitConverter.ToString(bytes.ToArray())}");
             clientConnection.ClientSocket.Send(bytes.ToArray());
         }
     }

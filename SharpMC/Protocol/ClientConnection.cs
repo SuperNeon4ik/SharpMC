@@ -29,9 +29,9 @@ public class ClientConnection
     {
         ClientSocket = clientSocket;
         State = ClientState.Handshaking;
+        ClientLogger = new Logger(ClientSocket.RemoteEndPoint.ToString());
         PacketThread = new Thread(HandleClientConnection);
         PacketThread.Start();
-        ClientLogger = new Logger(ClientSocket.RemoteEndPoint.ToString());
     }
 
     public void HandleClientConnection()
