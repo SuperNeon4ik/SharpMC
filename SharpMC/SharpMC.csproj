@@ -12,6 +12,7 @@
         <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+        <LangVersion>11</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -48,7 +49,10 @@
         <Compile Include="Modules\Logger.cs" />
         <Compile Include="Program.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="Protocol\PacketHandler.cs" />
+        <Compile Include="Protocol\Packets\Serverbound\PacketHandshakeClient.cs" />
         <Compile Include="Protocol\TypeParser.cs" />
+        <Compile Include="Protocol\TypeWriter.cs" />
         <Compile Include="SharpMC.cs" />
     </ItemGroup>
     <ItemGroup>
