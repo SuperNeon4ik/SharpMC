@@ -2,7 +2,7 @@
 
 namespace SharpMC.Protocol.Packets.Clientbound;
 
-public class PacketServerPong : IServerPacket
+public class PacketStatusServerPong : IServerPacket
 {
     public const byte ID = 0x01;
     public long Timestamp;

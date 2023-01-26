@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
+using java.util;
 using Newtonsoft.Json;
 using SharpMC.Enums;
 using SharpMC.Protocol.Packets;
@@ -26,33 +27,47 @@ namespace SharpMC.Protocol
                 if (clientConnection.State == ClientState.Handshaking)
                 {
                     // Handshake
-                    PacketClientHandshake p = new(packetPayload);
-                    Logger.Log(LogLevel.Debug, $"Received Handshake packet: {JsonConvert.SerializeObject(p)}");
+                    PacketHandshakingClientHandshake p = new(packetPayload);
+                    // Logger.Log(LogLevel.Debug, $"Received Handshake packet: {JsonConvert.SerializeObject(p)}");
+                    clientConnection.ProtocolVersion = p.ProtocolVersion;
+                    clientConnection.ServerAddress = p.ServerAddress;
+                    clientConnection.ServerPort = p.ServerPort;
                     if (p.NextState == 1) clientConnection.State = ClientState.Status;
                     else if (p.NextState == 2) clientConnection.State = ClientState.Login;
                     
                 }
                 else if (clientConnection.State == ClientState.Status)
                 {
-                    PacketServerStatus statusPacket = new PacketServerStatus();
-                    PacketServerStatus.StatusData statusData = new PacketServerStatus.StatusData();
-                    statusData.version = new PacketServerStatus.StatusVersion
+                    // Status Request
+                    PacketStatusServerStatusResponce statusResponcePacketStatus = new PacketStatusServerStatusResponce();
+                    PacketStatusServerStatusResponce.StatusData statusData = new PacketStatusServerStatusResponce.StatusData();
+                    statusData.version = new PacketStatusServerStatusResponce.StatusVersion
                     {
                         name = SharpMC.PropertiesConfig.ServerVersion,
                         protocol = PROTOCOL_VERSION
                     };
-                    statusData.players = new PacketServerStatus.StatusPlayers
+                    statusData.players = new PacketStatusServerStatusResponce.StatusPlayers
                     {
                         max = SharpMC.PropertiesConfig.MaxPlayers,
                         online = 0,
-                        sample = Array.Empty<PacketServerStatus.StatusPlayer>()
+                        sample = Array.Empty<PacketStatusServerStatusResponce.StatusPlayer>()
                     };
-                    statusData.description = new PacketServerStatus.StatusDescription()
+                    statusData.description = new PacketStatusServerStatusResponce.StatusDescription()
                     {
                         text = ChatColor.ReplaceAlternativeColorCodes('&', SharpMC.PropertiesConfig.Motd)
                     };
-                    statusPacket.JsonData = statusData;
-                    SendServerPacket(clientConnection, statusPacket);
+                    statusResponcePacketStatus.JsonData = statusData;
+                    SendServerPacket(clientConnection, statusResponcePacketStatus);
+                }
+                else if (clientConnection.State == ClientState.Login)
+                {
+                    // Login Start
+                    PacketLoginClientStart p = new PacketLoginClientStart(packetPayload);
+                    clientConnection.Name = p.Name;
+                    clientConnection.UUID = p.PlayerUUID;
+                    clientConnection.ClientLogger.Log(LogLevel.Info, $"Logging in as {clientConnection.Name}[{clientConnection.UUID}].");
+                    
+                    // Send Encryption Response
                 }
             }
             else if (packetId == 0x01)
@@ -60,10 +75,10 @@ namespace SharpMC.Protocol
                 if (clientConnection.State == ClientState.Status)
                 {
                     // Ping
-                    PacketClientPing p = new(packetPayload);
-                    PacketServerPong pongPacket = new PacketServerPong();
-                    pongPacket.Timestamp = p.Timestamp;
-                    SendServerPacket(clientConnection, pongPacket);
+                    PacketStatusClientPing p = new(packetPayload);
+                    PacketStatusServerPong pongPacketStatus = new PacketStatusServerPong();
+                    pongPacketStatus.Timestamp = p.Timestamp;
+                    SendServerPacket(clientConnection, pongPacketStatus);
                 }
             }
             else

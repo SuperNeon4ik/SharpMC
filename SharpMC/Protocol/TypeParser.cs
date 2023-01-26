@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using java.util;
 using SharpMC.Enums;
 
 namespace SharpMC.Protocol
@@ -158,6 +159,25 @@ namespace SharpMC.Protocol
         public static byte[] SkipInt64(byte[] bytes)
         {
             return bytes.Skip(8).ToArray();
+        }
+
+        public static bool ReadBool(byte[] bytes)
+        {
+            return BitConverter.ToBoolean(bytes.Take(1).ToArray(), 0);
+        }
+        public static byte[] SkipBool(byte[] bytes)
+        {
+            return bytes.Skip(1).ToArray();
+        }
+
+        public static UUID ReadUUID(byte[] bytes)
+        {
+            return UUID.nameUUIDFromBytes(bytes.Take(16).ToArray());
+        }
+
+        public static byte[] SkipUUID(byte[] bytes)
+        {
+            return bytes.Skip(16).ToArray();
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Threading;
+using java.util;
 using SharpMC.Enums;
 
 namespace SharpMC.Protocol;
@@ -15,7 +16,14 @@ public class ClientConnection
     public Socket ClientSocket;
     public ClientState State;
     public readonly Thread PacketThread;
-    public readonly Logger Logger;
+    public readonly Logger ClientLogger;
+
+    public int ProtocolVersion;
+    public string ServerAddress;
+    public ushort ServerPort;
+
+    public string Name;
+    public UUID UUID;
 
     public ClientConnection(Socket clientSocket)
     {
@@ -23,15 +31,14 @@ public class ClientConnection
         State = ClientState.Handshaking;
         PacketThread = new Thread(HandleClientConnection);
         PacketThread.Start();
-        Logger = new Logger(ClientSocket.RemoteEndPoint.ToString());
+        ClientLogger = new Logger(ClientSocket.RemoteEndPoint.ToString());
     }
 
     public void HandleClientConnection()
     {
         SharpMC.Clients.Add(this);
-
-        Logger clientLogger = new Logger(ClientSocket.RemoteEndPoint.ToString());
-        clientLogger.Log(LogLevel.Debug, "Client connected.");
+        
+        ClientLogger.Log(LogLevel.Debug, "Client connected.");
 
         byte[] buffer = new byte[1024];
 
@@ -43,7 +50,6 @@ public class ClientConnection
         List<byte> extraBuffer = new List<byte>();
         bool extraBufferRead = false;
         List<byte> packet = new List<byte>();
-        List<byte> rawpacket = new List<byte>();
 
         while (IsConnected())
         {
@@ -67,7 +73,6 @@ public class ClientConnection
                 for (; j < numByte; j++)
                 {
                     currentByte = buffer[j];
-                    rawpacket.Add(currentByte);
                     packetLenght |= (currentByte & SEGMENT_BITS) << position;
                     if ((currentByte & CONTINUE_BIT) == 0)
                     {
@@ -99,14 +104,10 @@ public class ClientConnection
                     else
                     {
                         packet.Add(buffer[i]);
-                        rawpacket.Add(buffer[i]);
                         if (packet.Count == packetLenght)
                         {
                             readingPacketLenght = true;
-                            // Logger.Log(LogLevel.Debug,
-                            //     $"Packet received (raw): {BitConverter.ToString(rawpacket.ToArray())}");
                             PacketHandler.ProcessPacket(this, packet.ToArray());
-                            rawpacket.Clear();
                             packet.Clear();
                             packetLenght = 0;
                             position = 0;
@@ -118,7 +119,7 @@ public class ClientConnection
         }
 
         SharpMC.Clients.Remove(this);
-        clientLogger.Log(LogLevel.Debug, "Client disconnected.");
+        ClientLogger.Log(LogLevel.Debug, "Client disconnected.");
     }
 
     public bool IsConnected()

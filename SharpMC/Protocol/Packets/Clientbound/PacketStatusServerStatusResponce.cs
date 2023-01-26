@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace SharpMC.Protocol.Packets.Clientbound;
 
-public class PacketServerStatus : IServerPacket
+public class PacketStatusServerStatusResponce : IServerPacket
 {
     public const byte ID = 0x00;
     public StatusData JsonData;
