@@ -122,7 +122,7 @@ namespace SharpMC.Protocol
             return SkipVarInt(bytes).Skip(size).ToArray();
         }
 
-        public static ushort ReadUshort(byte[] bytes)
+        public static ushort ReadUInt16(byte[] bytes)
         {
             if (bytes.Length == 0) return 0;
             bytes = bytes.Take(2).ToArray();
@@ -130,9 +130,34 @@ namespace SharpMC.Protocol
             return BitConverter.ToUInt16(bytes, 0);
         }
 
-        public static byte[] SkipUshort(byte[] bytes)
+        public static byte[] SkipUInt16(byte[] bytes)
         {
             return bytes.Skip(2).ToArray();
+        }
+        
+        public static int ReadInt32(byte[] bytes)
+        {
+            if (bytes.Length == 0) return 0;
+            bytes = bytes.Take(4).ToArray();
+            Array.Reverse(bytes);
+            return BitConverter.ToInt32(bytes, 0);
+        }
+
+        public static byte[] SkipInt32(byte[] bytes)
+        {
+            return bytes.Skip(4).ToArray();
+        }
+        public static long ReadInt64(byte[] bytes)
+        {
+            if (bytes.Length == 0) return 0;
+            bytes = bytes.Take(8).ToArray();
+            Array.Reverse(bytes);
+            return BitConverter.ToInt64(bytes, 0);
+        }
+
+        public static byte[] SkipInt64(byte[] bytes)
+        {
+            return bytes.Skip(8).ToArray();
         }
     }
 }

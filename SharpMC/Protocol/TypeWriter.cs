@@ -59,4 +59,9 @@ public static class TypeWriter
         WriteVarInt(bytes, strBytes.Length);
         bytes.AddRange(strBytes);
     }
+
+    public static void WriteInt64(List<byte> bytes, long value)
+    {
+        bytes.AddRange(BitConverter.GetBytes(value));
+    }
 }

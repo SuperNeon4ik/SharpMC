@@ -8,6 +8,6 @@ public class PacketClientPing
 
     public PacketClientPing(byte[] bytes)
     {
-        Timestamp = TypeParser.ReadVarLong(bytes);
+        Timestamp = TypeParser.ReadInt64(bytes);
     }
 }

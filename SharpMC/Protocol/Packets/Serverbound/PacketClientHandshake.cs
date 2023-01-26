@@ -15,8 +15,8 @@
             bytes = TypeParser.SkipVarInt(bytes);
             ServerAddress = TypeParser.ReadString(bytes);
             bytes = TypeParser.SkipString(bytes);
-            ServerPort = TypeParser.ReadUshort(bytes);
-            bytes = TypeParser.SkipUshort(bytes);
+            ServerPort = TypeParser.ReadUInt16(bytes);
+            bytes = TypeParser.SkipUInt16(bytes);
             NextState = TypeParser.ReadVarInt(bytes);
         }
     }

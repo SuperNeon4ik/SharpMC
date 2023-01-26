@@ -11,7 +11,7 @@ public class PacketServerPong : IServerPacket
     {
         List<byte> bytes = new List<byte>();
         bytes.Add(ID);
-        TypeWriter.WriteVarLong(bytes, Timestamp);
+        TypeWriter.WriteInt64(bytes, Timestamp);
         return bytes;
     }
 }
